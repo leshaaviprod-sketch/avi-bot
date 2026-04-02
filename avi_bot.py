@@ -63,12 +63,12 @@ def get_main_keyboard(user_id: int) -> ReplyKeyboardMarkup:
         KeyboardButton(text="🎵 Музыка"),
     )
     builder.row(
+        KeyboardButton(text="💭 Мои мысли"),
         KeyboardButton(text="💎 Подписка"),
-        KeyboardButton(text="🔒 Закрытый канал"),
     )
     builder.row(
         KeyboardButton(text="❓ Помощь"),
-        KeyboardButton(text="💬 Обратная связь"),
+        KeyboardButton(text="💬 Написать мне"),
     )
     return builder.as_markup(resize_keyboard=True)
 
@@ -81,11 +81,8 @@ def get_welcome_keyboard() -> InlineKeyboardMarkup:
         InlineKeyboardButton(text="🎵 Слушать музыку", callback_data="music"),
     )
     builder.row(
+        InlineKeyboardButton(text="💭 Мои мысли", url="https://t.me/Leshaavilov"),
         InlineKeyboardButton(text="💎 Стать подписчиком", callback_data="subscription"),
-        InlineKeyboardButton(text="🔒 Доступ к закрытому", callback_data="private"),
-    )
-    builder.row(
-        InlineKeyboardButton(text="📢 Открытый канал", url=f"https://t.me/{PUBLIC_CHANNEL_ID.strip('@')}"),
     )
     builder.row(
         InlineKeyboardButton(text="❓ Есть вопросы?", callback_data="help"),
@@ -129,6 +126,14 @@ def get_back_keyboard() -> InlineKeyboardMarkup:
     return builder.as_markup()
 
 
+def get_back_keyboard_with_link(url: str, link_text: str) -> InlineKeyboardMarkup:
+    """Клавиатура с кнопкой назад и ссылкой"""
+    builder = InlineKeyboardBuilder()
+    builder.row(InlineKeyboardButton(text=link_text, url=url))
+    builder.row(InlineKeyboardButton(text="🔙 В главное меню", callback_data="back_main"))
+    return builder.as_markup()
+
+
 # === ТЕКСТЫ СООБЩЕНИЙ ===
 
 WELCOME_TEXT = """
@@ -140,6 +145,7 @@ WELCOME_TEXT = """
 • Мою музыку и процесс её создания
 • Ежедневную мотивацию для творчества
 • Комьюнити единомышленников
+• Закрытый канал с эксклюзивом
 
 Выбери, что тебе интересно 👇
 """
@@ -156,7 +162,7 @@ ABOUT_TEXT = """
 Показать, что ты тоже можешь создавать.
 Не будь зрителем — будь творцом.
 
-<i>"Твой день нужен AVI"</i>
+<i>"Создавай. Не будь зрителем."</i>
 
 Выбери действие ниже 👇
 """
@@ -177,28 +183,14 @@ SUBSCRIPTION_TEXT = """
 💎 <b>Подписка на AVI</b>
 
 Стань частью движения и получи:
-• 🔒 Доступ к закрытому каналу
-• ⚡ Ранний доступ к трекам
+• ⚡ Ранний доступ к новым трекам
 • 💬 Общение с единомышленниками
 • 🎁 Эксклюзивный контент
+• 📈 Прогресс проекта
+
+<i>Скоро откроем закрытый канал для подписчиков!</i>
 
 <i>Выбери тариф ниже:</i>
-"""
-
-PRIVATE_CHANNEL_TEXT = """
-🔒 <b>Закрытый канал AVI</b>
-
-Это пространство для настоящих участников движения.
-
-Там:
-• Превью новых треков раньше всех
-• Закулисье создания контента
-• Общение с такими же творцами
-• Возможность влиять на будущее AVI
-
-<b>Доступ — по подписке.</b>
-
-👇 Оформить подписку:
 """
 
 HELP_TEXT = """
@@ -287,16 +279,6 @@ async def callback_subscription(call: CallbackQuery):
     await call.answer()
 
 
-@router.callback_query(F.data == "private")
-async def callback_private(call: CallbackQuery):
-    """Раздел Закрытый канал"""
-    await call.message.edit_text(
-        PRIVATE_CHANNEL_TEXT,
-        reply_markup=get_subscription_keyboard(),
-    )
-    await call.answer()
-
-
 @router.callback_query(F.data == "sub_month")
 async def callback_sub_month(call: CallbackQuery):
     """Подписка на месяц"""
@@ -357,12 +339,12 @@ async def msg_subscription(message: Message):
     )
 
 
-@router.message(F.text == "🔒 Закрытый канал")
-async def msg_private(message: Message):
-    """Кнопка Закрытый канал"""
+@router.message(F.text == "💭 Мои мысли")
+async def msg_thoughts(message: Message):
+    """Кнопка Мои мысли"""
     await message.answer(
-        PRIVATE_CHANNEL_TEXT,
-        reply_markup=get_subscription_keyboard(),
+        "💭 <b>Мои мысли</b>\n\nТут я делюсь своими мыслями, идеями и всем, что происходит в моей жизни.\n\nПрисоединяйся! 👇",
+        reply_markup=get_back_keyboard_with_link("https://t.me/Leshaavilov", "💭 Перейти в группу"),
     )
 
 
@@ -375,12 +357,12 @@ async def msg_help(message: Message):
     )
 
 
-@router.message(F.text == "💬 Обратная связь")
+@router.message(F.text == "💬 Написать мне")
 async def msg_feedback(message: Message, state: FSMContext):
-    """Обратная связь"""
+    """Написать мне"""
     await state.set_state(Form.waiting_feedback)
     await message.answer(
-        "💬 <b>Напишите ваше сообщение:</b>\n\nЭто может быть вопрос, предложение или просто доброе слово)",
+        "💬 <b>Напишите мне сообщение:</b>\n\nЯ прочитаю его и обязательно отвечу.\n\n⏳ Обычно отвечаю в течение 24 часов.",
         reply_markup=types.ReplyKeyboardRemove(),
     )
 
