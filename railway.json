@@ -5,6 +5,8 @@
   },
   "deploy": {
     "startCommand": "python avi_bot.py",
-    "healthcheckPath": "/"
+    "healthcheckPath": null,
+    "healthcheckTimeout": 0,
+    "restartPolicyType": "ON_FAILURE"
   }
 }
