@@ -1,0 +1,6 @@
+{
+  "name": "avi-bot",
+  "description": "AVI Telegram Bot — movement for creators",
+  "auto_init": false,
+  "private": false
+}
